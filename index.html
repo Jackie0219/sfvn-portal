@@ -187,7 +187,7 @@
       </svg>
       <h2>公告</h2>
     </div>
-    <ul>
+    <ul id="notice-list">
       <li><time>10-24</time><span>越南区门户正式上线，各业务模块常用系统入口持续补充中。</span></li>
       <li><time>10-20</time><span>请各部门核对模块内网址是否正确，如有变更请联系门户管理员更新。</span></li>
       <li><time>10-15</time><span>第四季度跨境干线时效调整通知，详情见供应链模块公告邮件。</span></li>
@@ -372,6 +372,26 @@ var now = new Date();
 var wd = ["周日","周一","周二","周三","周四","周五","周六"][now.getDay()];
 document.getElementById("today").textContent =
   now.getFullYear() + "年" + (now.getMonth()+1) + "月" + now.getDate() + "日 · " + wd;
+
+/* ================= 公告：从 announcements.txt 读取 ================= */
+/* 格式：每行一条公告，"日期|正文"，例如 10-25|十一月起调整收派时间
+   最新的写在最上面；空行自动忽略；加载失败时显示上面内置的默认公告 */
+(function loadNotices(){
+  var list = document.getElementById("notice-list");
+  fetch("announcements.txt?t=" + Date.now(), {cache:"no-store"})
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
+    .then(function(text){
+      var lines = text.split(/\r?\n/).filter(function(l){ return l.trim() !== ""; });
+      if(!lines.length) return;
+      list.innerHTML = lines.map(function(line){
+        var sep = line.indexOf("|");
+        var d = sep > -1 ? line.slice(0, sep).trim() : "";
+        var t = sep > -1 ? line.slice(sep + 1).trim() : line.trim();
+        return "<li>" + (d ? "<time>" + d + "</time>" : "") + "<span>" + t + "</span></li>";
+      }).join("");
+    })
+    .catch(function(){ /* 保留内置默认公告 */ });
+})();
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body>
